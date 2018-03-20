@@ -1,0 +1,112 @@
+#!/usr/bin/env ruby
+
+require_relative '../system/app'
+require 'dry/monads'
+
+module Dry
+  module AutoInject
+    class Strategies
+      class Kwargs
+        def included(klass)
+          included_items
+          super
+        end
+
+        def included_items
+          class_mod.class_exec(container, dependency_map) do |container, dependency_map|
+            map = dependency_map.to_h.to_a
+
+            define_method :included_keys do
+              map.map { |_, identifier| identifier }
+            end
+          end
+        end
+      end
+    end
+  end
+end
+
+class ContainerDependicies
+  include Dry::Monads::Try::Mixin
+
+  attr_reader :container
+
+  def call(container)
+    @container = container
+
+    deps_hash = deps(@container.keys)
+    from_container(container).each { |key, dep| deps_hash[key][dep] = {} }
+    deps_hash
+  end
+
+  private
+
+  def from_container(container)
+    classes_with_deps = all_classes - classes(container)
+
+    deps = {}
+    classes_with_deps.each { |klass| klass.included_keys.each { |key| deps[key] = klass } }
+    deps
+  end
+
+  def classes(container)
+    container.keys.map do |key|
+      Try(LoadError, NoMethodError) { container[key].class.name == 'Class' ? container[key] : container[key].class }.value
+    end.compact
+  end
+
+  def all_classes
+    ObjectSpace.each_object.select do |o|
+      Try() { o.included_keys.is_a?(Array) }.value
+    end.select { |klass| klass.class == Class }
+  end
+
+
+  def deps(keys)
+    return keys unless keys
+
+    deps = {}
+
+    Array(keys).each do |key|
+      included = Try(LoadError, NoMethodError) { container[key].class.included_keys }.value
+
+      if included == nil
+        deps[key] = {}
+      else
+        deps[key] = deps(included)
+      end
+    end
+
+    deps
+  end
+end
+
+require 'rgl/adjacency'
+
+class DependensiesGraph
+  def call(container)
+    nodes = ContainerDependicies.new.call(container)
+    dg = RGL::DirectedAdjacencyGraph.new
+    set_nodes(dg, container.name, nodes)
+    dg
+  end
+
+  private
+
+  def set_nodes(dg, root, nodes)
+    nodes.each do |parent, node|
+      dg.add_edge root, parent
+
+      set_nodes(dg, parent, node) if node
+    end
+
+    dg
+  end
+end
+
+App.finalize!
+
+rgl = DependensiesGraph.new.call(App)
+
+require 'rgl/dot'
+rgl.write_to_graphic_file('png')
