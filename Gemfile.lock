@@ -52,9 +52,12 @@ GEM
     pry (0.11.3)
       coderay (~> 1.1.0)
       method_source (~> 0.9.0)
+    rack (2.0.4)
     rgl (0.5.3)
       lazy_priority_queue (~> 0.1.0)
       stream (~> 0.5.0)
+    roda (3.5.0)
+      rack
     rspec (3.7.0)
       rspec-core (~> 3.7.0)
       rspec-expectations (~> 3.7.0)
@@ -79,6 +82,7 @@ DEPENDENCIES
   dry-system
   pry
   rgl
+  roda
   rspec
 
 BUNDLED WITH
