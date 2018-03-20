@@ -45,6 +45,12 @@ GEM
       dry-equalizer (~> 0.2)
       dry-logic (~> 0.4, >= 0.4.2)
       inflecto (~> 0.0.0, >= 0.0.2)
+    hanami-cli (0.1.1)
+      concurrent-ruby (~> 1.0)
+      hanami-utils (~> 1.1)
+    hanami-utils (1.1.2)
+      concurrent-ruby (~> 1.0)
+      transproc (~> 1.0)
     ice_nine (0.11.2)
     inflecto (0.0.2)
     lazy_priority_queue (0.1.1)
@@ -72,6 +78,7 @@ GEM
       rspec-support (~> 3.7.0)
     rspec-support (3.7.1)
     stream (0.5)
+    transproc (1.0.2)
 
 PLATFORMS
   ruby
@@ -80,6 +87,7 @@ DEPENDENCIES
   byebug
   dry-monads
   dry-system
+  hanami-cli
   pry
   rgl
   roda

@@ -1,0 +1,33 @@
+#!/usr/bin/env ruby
+
+require "bundler/setup"
+require "hanami/cli"
+
+require "json"
+require_relative '../system/boot'
+
+module Commands
+  extend Hanami::CLI::Registry
+
+  class Command < Hanami::CLI::Command
+    def api
+      App
+    end
+  end
+
+  class CreateUser < Command
+    desc "Creates a user"
+
+    argument :user, desc: "User data"
+
+    def call(user: nil, **)
+      params = JSON.parse(user)
+      output = api['users.create_user'].call(params)
+      puts "Created #{output.inspect}"
+    end
+  end
+
+  register "create_user", CreateUser
+end
+
+Hanami::CLI.new(Commands).call
